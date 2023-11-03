@@ -1,0 +1,10 @@
+apache-airflow==2.6.3
+
+# lib connect db
+apache-airflow-providers-postgres
+apache-airflow-providers-mysql
+
+# lib trasfer time zone
+pytz==2023.3
+pandas
+openpyxl
