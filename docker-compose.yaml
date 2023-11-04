@@ -90,6 +90,11 @@ networks:
         - subnet: 10.5.0.0/16
           gateway: 10.5.0.1
 
+volumes:
+  postgres-db-volume:
+  postgres-db-volume-jira:
+  mysql-db-volume-data-mart:
+
 services:
   #jira database
   jira-database:
@@ -101,7 +106,7 @@ services:
       POSTGRES_PASSWORD: nhuan
       POSTGRES_DB: jira
     volumes:
-      - postgres-db-volume-jira:/var/lib/postgresql/jira_data
+      - postgres-db-volume-jira:/var/lib/postgresql/data
     networks:
       thesis:
         ipv4_address: 10.5.0.2
@@ -117,11 +122,10 @@ services:
     ports:
       - "3309:3309"
     environment:
-      MYSQL_USER: nhuan
       MYSQL_ROOT_PASSWORD: nhuan
       MYSQL_DATABASE: data_mart
     volumes:
-      - mysql-db-volume-data-mart:/var/lib/mysql/data_mart
+      - mysql-db-volume-data-mart:/var/lib/mysql
     networks:
       thesis:
         ipv4_address: 10.5.0.3
@@ -375,8 +379,3 @@ services:
       <<: *airflow-common-depends-on
       airflow-init:
         condition: service_completed_successfully
-
-volumes:
-  postgres-db-volume:
-  postgres-db-volume-jira:
-  mysql-db-volume-data-mart:
