@@ -11,3 +11,7 @@ openpyxl
 pandera
 
 kubernetes
+
+pandasql
+
+python-holidayapi

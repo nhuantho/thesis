@@ -33,8 +33,8 @@ class DagMetadata:
 
 
 # region dim
-dim_group = DagMetadata(
-    dag_id='dim_group',
+build_dim = DagMetadata(
+    dag_id='build_dim',
     schedule_time=Time(hour=1, minute=0),
     schedule_interval=daily,
 )

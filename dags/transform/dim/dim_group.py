@@ -4,17 +4,11 @@ import pandas as pd
 from airflow.utils.context import Context
 from pandera import Column, DataFrameSchema
 from datetime import datetime, date
+import logging
 
+logger = logging.getLogger(__name__)
 
 class DimGroup(BaseOperator):
-
-    INPUT_SCHEMA = DataFrameSchema({
-        'id': Column(int),
-        'group_name': Column(str),
-        'active': Column(int),
-        'created_date': Column(datetime),
-        'updated_date': Column(datetime)
-    })
 
     OUTPUT_SCHEMA = DataFrameSchema({
         'raw_id': Column(int),
@@ -55,13 +49,27 @@ class DimGroup(BaseOperator):
             })
         )
 
+        df_with_date['raw_id'] = df_with_date['raw_id'].astype(int)
+        df_with_date['active'] = df_with_date['active'].astype(int)
+        df_with_date['created_date'] = pd.to_datetime(df_with_date['updated_date']).dt.tz_localize(None)
+        df_with_date['updated_date'] = pd.to_datetime(df_with_date['updated_date']).dt.tz_localize(None)
+
         return self.OUTPUT_SCHEMA.validate(df_with_date)
 
     def execute(self, context: Context) -> None:
         execution_date = context["dag_run"].logical_date.date()
-        extract_data = GeneralFunction.extract(self.conn_jira_id, self.sql)
-        transform_data = self._transform(extract_data, execution_date)
-        GeneralFunction.load(self.conn_data_mart_id, self.table, transform_data)
+        check_run = GeneralFunction.extract_data_mart(
+            self.conn_data_mart_id, f'select * from dim_group where date=\'{execution_date}\''
+        )
+
+        if check_run.empty:
+            extract_data = GeneralFunction.extract_jira(self.conn_jira_id, self.sql)
+            transform_data = self._transform(extract_data, execution_date)
+            GeneralFunction.load(self.conn_data_mart_id, self.table, transform_data, 'append')
+        else:
+            logger.info(check_run)
+            logger.info('dag ran today')
+            logger.info(execution_date)
 
 
 

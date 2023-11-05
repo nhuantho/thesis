@@ -26,6 +26,7 @@ logs/
 plugins/
 venv/
 env/
+excel_source/
 build/
 develop-eggs/
 dist/
