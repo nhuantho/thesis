@@ -3,9 +3,10 @@ from airflow.providers.postgres.hooks.postgres import PostgresHook
 from airflow.providers.mysql.hooks.mysql import MySqlHook
 from airflow.hooks.base import BaseHook
 from sqlalchemy.engine import create_engine
-from datetime import date
+from datetime import date, timedelta
 import os
 import logging
+from typing import List
 
 logger = logging.getLogger(__name__)
 
@@ -37,10 +38,15 @@ class GeneralFunction:
         return mysql_hook.get_pandas_df(sql=sql)
 
     @classmethod
-    def extract_excel(cls, file_name):
+    def extract_excel(cls, file_name) -> pd.DataFrame:
         file_path = f'{os.getcwd()}/dags/excel_source/{file_name}'
         logger.info(file_path)
         return pd.read_excel(file_path)
+
+    @classmethod
+    def extract_jira_to_list(cls, conn_id: str, sql: str) -> List:
+        postgres_hook = PostgresHook(postgres_conn_id=conn_id)
+        return postgres_hook.get_records(sql=sql)
 
     @classmethod
     def tranform_email(cls, df: pd.DataFrame, column_name: str) -> pd.DataFrame:

@@ -19,7 +19,7 @@ tz_env = V1EnvVar(name='TZ', value=tz_vn.name)
 
 with DAG(
     dag_id=build_dim.dag_id,
-    description='ETL dag for cardano daily',
+    description='ETL dag for dim daily',
     default_args=default_args,
     schedule=schedule_daily_at(build_dim.schedule_time),
     start_date=datetime(2023, 11, 4, tzinfo=tz_vn),

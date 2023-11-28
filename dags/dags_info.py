@@ -39,3 +39,11 @@ build_dim = DagMetadata(
     schedule_interval=daily,
 )
 # endregion dim
+
+# region fact
+build_fact = DagMetadata(
+    dag_id='build_fact',
+    schedule_time=Time(hour=1, minute=30),
+    schedule_interval=daily,
+)
+# endregion fact
