@@ -78,6 +78,9 @@ with DAG(
 
     build_fact_ra_po >> build_fact_resource_utilization
 
-    start >> build_fact_ra_po >> end
+    build_fact_poe_ru = [build_fact_product_output_efficiency, build_fact_resource_utilization]
+
+    start >> build_fact_ra_po
+    build_fact_poe_ru >> end
 
 

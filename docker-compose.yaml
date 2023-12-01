@@ -57,7 +57,7 @@ x-airflow-common: &airflow-common
     # For backward compatibility, with Airflow <2.3
     AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
     AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@postgres/airflow
-    AIRFLOW__CELERY__BROKER_URL: redis://:@redis:6379/0
+    AIRFLOW__CELERY__BROKER_URL: redis://:@redis-airflow:6379/0
     AIRFLOW__CORE__FERNET_KEY: ""
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
     AIRFLOW__CORE__LOAD_EXAMPLES: "false"
@@ -77,7 +77,7 @@ x-airflow-common: &airflow-common
     - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/plugins
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on: &airflow-common-depends-on
-    redis:
+    redis-airflow:
       condition: service_healthy
     postgres:
       condition: service_healthy
@@ -156,10 +156,10 @@ services:
       start_period: 5s
     restart: always
 
-  redis:
+  redis-airflow:
     image: redis:latest
     expose:
-      - 6379
+      - 6779
     networks:
       thesis:
         ipv4_address: 10.5.0.5
