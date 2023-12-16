@@ -1,29 +1,13 @@
 from airflow.models import BaseOperator
 from transform.general_function import GeneralFunction
-import pandas as pd
 from airflow.utils.context import Context
-from pandera import Column, DataFrameSchema
-from datetime import datetime, date
-from pandasql import sqldf
+from dateutil.relativedelta import relativedelta
 import logging
 
 logger = logging.getLogger(__name__)
 
 
 class DimProject(BaseOperator):
-
-    OUTPUT_SCHEMA = DataFrameSchema({
-        'raw_id': Column(int),
-        'project_name': Column(str),
-        'lead': Column(str),
-        'description': Column(str),
-        'project_key': Column(str),
-        'project_status': Column(int),
-        'project_type': Column(str, nullable=True),
-        'created_date': Column(datetime, nullable=True),
-        'updated_date': Column(datetime, nullable=True),
-        'date': Column(date)
-    })
 
     def __init__(
             self,
@@ -32,6 +16,7 @@ class DimProject(BaseOperator):
             conn_data_mart_id: str,
             table: str,
             sql: str,
+            append: bool = True,
             **kwargs: object
     ) -> None:
         super().__init__(**kwargs, task_id=task_id)
@@ -39,44 +24,17 @@ class DimProject(BaseOperator):
         self.conn_data_mart_id = conn_data_mart_id
         self.table = table
         self.sql = sql
-
-    def _transform(self, df: pd.DataFrame, execution_date: date) -> pd.DataFrame:
-
-        df_with_date = (
-            GeneralFunction
-            .add_date_column(df, execution_date)
-            .rename(columns={
-                'id': 'raw_id',
-                'project_name': 'project_name',
-                'lead': 'lead',
-                'description': 'description',
-                'project_key': 'project_key',
-                'project_status': 'project_status',
-                'project_type': 'project_type',
-                'create_time': 'created_date',
-                'update_time': 'updated_date',
-                'date': 'date'
-            })
-        )
-
-        df_with_date['raw_id'] = df_with_date['raw_id'].astype(int)
-        df_with_date['created_date'] = pd.to_datetime(df_with_date['updated_date']).dt.tz_localize(None)
-        df_with_date['updated_date'] = pd.to_datetime(df_with_date['updated_date']).dt.tz_localize(None)
-
-        return self.OUTPUT_SCHEMA.validate(df_with_date)
+        self.append = append
 
     def execute(self, context: Context) -> None:
-        execution_date = context["dag_run"].logical_date.date()
-        check_run = GeneralFunction.extract_data_mart(
-            self.conn_data_mart_id, f'select * from dim_project where date=\'{execution_date}\''
-        )
-
-        if check_run.empty:
-            extract_data_jira = GeneralFunction.extract_jira(self.conn_jira_id, self.sql)
-            transform_data = self._transform(extract_data_jira, execution_date)
-            GeneralFunction.load(self.conn_data_mart_id, self.table, transform_data, 'append')
-        else:
-            logger.info(check_run)
-            logger.info('dag ran today')
-            logger.info(execution_date)
+        start_date = context["dag_run"].logical_date.date()
+        end_date = start_date + relativedelta(months=1)
+        logger.info(f'start_date:{start_date}')
+        logger.info(f'end_date:{end_date}')
+        sql = self.sql.format(start_date=f'\'{start_date}\'', end_date=f'\'{end_date}\'')
+        logger.info(sql)
+        extract_data = GeneralFunction.extract_jira(self.conn_jira_id, sql)
+        logger.info(extract_data)
+        GeneralFunction.load(self.conn_data_mart_id, self.table, extract_data, 'append' if self.append else 'replace')
+        logger.info('Done!!!')
 

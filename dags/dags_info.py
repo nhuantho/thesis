@@ -20,23 +20,25 @@ tz_vn: Timezone = Timezone("Asia/Bangkok")
 tz_utc: Timezone = pendulum.tz.UTC
 
 
-def schedule_daily_at(time: time) -> str:
+def schedule_monthly_at(time: time) -> str:
     """Return schedule_interval from given time"""
-    return f'{time.minute} {time.hour} * * *'
+    return f'{time.minute} {time.hour} * 1 *'
 
 
 @dataclass
 class DagMetadata:
     dag_id: str
     schedule_time: Time
-    schedule_interval: timedelta
 
 
 # region dim
 build_dim = DagMetadata(
     dag_id='build_dim',
     schedule_time=Time(hour=1, minute=0),
-    schedule_interval=daily,
+)
+build_dim_full = DagMetadata(
+    dag_id='build_dim_full',
+    schedule_time=Time(hour=1, minute=0),
 )
 # endregion dim
 
@@ -44,6 +46,9 @@ build_dim = DagMetadata(
 build_fact = DagMetadata(
     dag_id='build_fact',
     schedule_time=Time(hour=1, minute=30),
-    schedule_interval=daily,
+)
+build_fact_full = DagMetadata(
+    dag_id='build_fact_full',
+    schedule_time=Time(hour=1, minute=30),
 )
 # endregion fact

@@ -1,14 +1,13 @@
 from datetime import datetime
 
 from airflow.models import DAG
-from airflow.sensors.external_task import ExternalTaskSensor
 from airflow.operators.empty import EmptyOperator
 from kubernetes.client.models import V1EnvVar
-from dags_info import tz_vn, build_fact, schedule_monthly_at, build_dim
+
+from dags_info import tz_vn, build_fact_full
+from queries import fact_workforce_productivity_full, fact_product_output_efficiency_full
 from transform.fact.fact_product_output_efficiency import FactProductOutputEfficiency
 from transform.fact.fact_workforce_productivity import FactWorkforceProductivity
-from queries import fact_workforce_productivity, fact_product_output_efficiency
-
 
 default_args = {
     'owner': 'nhuanbc',
@@ -17,10 +16,10 @@ default_args = {
 tz_env = V1EnvVar(name='TZ', value=tz_vn.name)
 
 with DAG(
-    dag_id=build_fact.dag_id,
+    dag_id=build_fact_full.dag_id,
     description='ETL dag for fact daily',
     default_args=default_args,
-    schedule=schedule_monthly_at(build_fact.schedule_time),
+    schedule=None,
     start_date=datetime(2023, 11, 18, tzinfo=tz_vn),
     tags=['data_mart', 'fact', 'daily'],
     catchup=False,
@@ -38,8 +37,9 @@ with DAG(
         task_id='build_fact_workforce_productivity',
         conn_jira_id='jira',
         conn_data_mart_id='data_mart',
-        table=fact_workforce_productivity['table'],
-        sql=fact_workforce_productivity['sql'],
+        table=fact_workforce_productivity_full['table'],
+        sql=fact_workforce_productivity_full['sql'],
+        append=False,
         dag=dag
     )
 
@@ -47,8 +47,9 @@ with DAG(
         task_id='build_fact_product_output_efficiency',
         conn_jira_id='jira',
         conn_data_mart_id='data_mart',
-        table=fact_product_output_efficiency['table'],
-        sql=fact_product_output_efficiency['sql'],
+        table=fact_product_output_efficiency_full['table'],
+        sql=fact_product_output_efficiency_full['sql'],
+        append=False,
         dag=dag
     )
 

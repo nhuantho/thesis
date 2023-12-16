@@ -8,7 +8,8 @@ from transform.general_function import GeneralFunction
 
 logger = logging.getLogger(__name__)
 
-class DimGroup(BaseOperator):
+class FactWorkforceProductivity(BaseOperator):
+
     def __init__(
             self,
             task_id: str,

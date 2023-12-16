@@ -24,6 +24,7 @@ __pycache__/
 .Python
 logs/
 plugins/
+config/
 venv/
 env/
 excel_source/
