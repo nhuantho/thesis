@@ -22,7 +22,7 @@ tz_utc: Timezone = pendulum.tz.UTC
 
 def schedule_monthly_at(time: time) -> str:
     """Return schedule_interval from given time"""
-    return f'{time.minute} {time.hour} * 1 *'
+    return f'{time.minute} {time.hour} 1 * *'
 
 
 @dataclass
