@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from airflow.models import BaseOperator
 from transform.general_function import GeneralFunction
 from airflow.utils.context import Context
@@ -27,7 +29,7 @@ class DimProject(BaseOperator):
         self.append = append
 
     def execute(self, context: Context) -> None:
-        start_date = context["dag_run"].logical_date.date()
+        start_date = context["dag_run"].logical_date.date() + timedelta(days=1)
         end_date = start_date + relativedelta(months=1)
         logger.info(f'start_date:{start_date}')
         logger.info(f'end_date:{end_date}')

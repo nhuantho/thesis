@@ -206,7 +206,7 @@ fact_workforce_productivity_full = {
                 sum(effort_precent)/count(*) as ra,
                 to_char("date",'YYYY-MM') as time_id
             from jira_resource_allowcation
-            where "date" < '2023-11-30'
+            where "date" < '2023-12-01'
             group by project_id, user_id, to_char("date",'YYYY-MM')
         ) ra on ra.project_id = mm.project_id 
             and ra.user_id = mm.user_id
@@ -240,7 +240,7 @@ fact_product_output_efficiency_full = {
                 sum(effort_precent)/count(*) as ra,
                 to_char("date",'YYYY-MM') as time_id
             from jira_resource_allowcation
-            where "date" < '2023-11-30'
+            where "date" < '2023-12-01'
             group by project_id, to_char("date",'YYYY-MM')
         ) ra on ra.project_id = mm.project_id 
             and ra.time_id = mm.time_id
